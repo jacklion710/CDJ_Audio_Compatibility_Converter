@@ -1,5 +1,5 @@
 '''
-Title: M8 Sample Data Cleaner
+Title: CDJ Audio Compatibility Converter
 Author: Jacob Leone aka Jack.lion - @jack.lion710@gmail.com
 Linktree: linktr.ee/Jack.Lion
 
@@ -7,7 +7,7 @@ This work is licensed under the Creative Commons Attribution-NoDerivatives 4.0 I
 this license, visit http://creativecommons.org/licenses/by-nd/4.0/.
 
 PLEASE READ BEFORE USE!!
-This is a destructive process meaning the changes it makes can not be undone. I would HIGHLY reccomend making duplicates
+This is a destructive process meaning the changes it makes can not be undone. I would HIGHLY recommend making duplicates
 of your target directory before using this to avoid unwanted changes or lost data. The code has been tested on my system
 and works well for me but I can not accept responsibility for any lost or damaged data. Once you try the functions out
 and are comfortable with the configuration you have, then you may feel free to commit your changes.
@@ -15,7 +15,7 @@ and are comfortable with the configuration you have, then you may feel free to c
 Description: The goal of this script is to prepare a directory tree of audio files for compatibility with Pioneer CDJ
 Equipment. Each function is designed to work independently so feel free to comment out functions you don't wish to use
 in the main program. You can even reorder them if you prefer. The default state is biased towards my preferences and the
-full script is as conservative as possible meaining it reduces the data such as bitdepth and samplerate as much as
+full script is as conservative as possible meaning it reduces the data such as bitdepth and samplerate as much as
 possible without affecting the audio quality. It is only compatible with WAV files currently. Any other types of audio
 files will be converted into WAV types.
 
@@ -24,8 +24,9 @@ Functionality:
 2) delete_non_wav_files() deletes all non-WAV files in the directory.
 3) check_files() checks the validity of WAV files and returns a list of corrupt or damaged files.
 4) convert_bit_depth() converts the bit depth of all audio files to the specified target_bit_depth.
-5) split_and_trim_all() splits and trims audio files, removing silence at the beginning and end. The threshold parameter
-determines the length of silence in milliseconds to detect for slicing to occur.
+5) downsample_audio() converts the sample rate to a target value
+6) check_bit_depth() returns the bitdepth of every file
+7) check_sample_rate() returns the sample rate of every file
 
 Further instructions are listed in the main program
 Feel free to modify this code to fit your needs or make contributions if you feel, Just don't redistribute as your own.
