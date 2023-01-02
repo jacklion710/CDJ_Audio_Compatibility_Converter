@@ -26,3 +26,7 @@ The changes made by the script are destructive and cannot be undone. It is recom
 The script has been tested and is known to work correctly, but the author cannot accept responsibility for any lost or damaged data.
 The script is licensed under the MIT License. Do not redistribute as your own work.
 If you have any questions or issues, feel free to contact the author at jack.lion710@gmail.com.
+
+Installation Download Python Download the latest version of Python from https://www.python.org/downloads/.
+
+Install PyCharm (optional) We recommend downloading PyCharm from www.jetbrains.com/pycharm/download/.
