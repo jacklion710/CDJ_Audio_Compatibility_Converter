@@ -93,45 +93,36 @@ def check_files(root_dir):
 
 # Traverse the directory tree and convert all audio files bitdepth
 def convert_bit_depth(root_dir, target_bit_depth):
+    # Use os.walk() to loop through all the subdirectories in the tree
     for root, dirs, files in os.walk(root_dir):
-        for file in files:
-            if file.endswith('.wav'):
-                file_path = os.path.join(root, file)
-                with open(file_path, 'rb') as f:
-                    # Read the RIFF header
-                    riff_header = f.read(12)
-                    if riff_header[:4] != b'RIFF':
-                        raise ValueError('Not a RIFF file')
-                    if riff_header[8:12] != b'WAVE':
-                        raise ValueError('Not a WAVE file')
-
-                    # Read the format chunk
-                    fmt_chunk_header = f.read(8)
-                    if fmt_chunk_header[:4] != b'fmt ':
-                        raise ValueError('Not a format chunk')
-                    fmt_chunk_size = struct.unpack('<I', fmt_chunk_header[4:8])[0]
-                    fmt_chunk_data = f.read(fmt_chunk_size)
-                    wFormatTag, nChannels, nSamplesPerSec, nAvgBytesPerSec, nBlockAlign, wBitsPerSample = struct.unpack('<HHIIHH', fmt_chunk_data[:16])
-
-                    # Check if bit depth is greater than the target bit depth
-                    if wBitsPerSample > target_bit_depth:
-                        # Open a new file for writing
-                        new_file_path = file_path + '_temp'
-                        with wave.open(new_file_path, 'wb') as f2:
-                            # Use the same parameters as the original file, except with the target bit depth
-                            params = (nChannels, target_bit_depth // 8, nSamplesPerSec, 0, 'NONE', 'not compressed')
-                            f2.setparams(params)
-                            # Read and write the samples
-                            while True:
-                                sample_bytes = f.read(nBlockAlign)
-                                if not sample_bytes:
-                                    break
-                                f2.writeframes(sample_bytes)
-                        # Close the original file
-                        f.close()
-                        # Replace the original file with the new one
-                        os.replace(new_file_path, file_path)
-                        print(f'Converted {file_path} to {target_bit_depth} bits')
+        # Loop through all the files in the current directory
+        for filename in files:
+            # Check if the file is an audio file
+            if filename.endswith(".mp3") or filename.endswith(".wav"):
+                # Set the input and output filenames
+                input_filename = os.path.join(root, filename)
+                print(f"Converting {input_filename} to {target_bit_depth} bits")
+                # Get the base name and extension of the input file
+                filename, file_extension = os.path.splitext(input_filename)
+                output_path = os.path.dirname(input_filename)
+                output_filename = os.path.join(output_path, filename + "_converted" + file_extension)
+                # Read the audio data from the input file
+                data, samplerate = sf.read(input_filename)
+                try:
+                    # Write the audio data to the output file with the desired bit depth
+                    sf.write(output_filename, data, samplerate, subtype=f'PCM_{target_bit_depth}')
+                except TypeError as e:
+                    if "No format specified" in str(e):
+                        print(
+                            f"Unable to write file {output_filename} because the format could not be determined from the file extension")
+                        # Print an error message and continue with the next file
+                        continue
+                    else:
+                        # If the error is not related to the format not being specified, re-raise the error
+                        raise e
+                # Delete the original file and rename the new file
+                os.remove(input_filename)
+                os.rename(output_filename, input_filename)
 
 # Convert sample rate to a target value
 def downsample_audio(root_dir, target_sample_rate):
@@ -153,28 +144,23 @@ def downsample_audio(root_dir, target_sample_rate):
 
 # Check the bit depth of all WAV files in the root_dir directory
 def check_bit_depth(root_dir):
+    all_files_32bit = True
+    failing_files = []
     for root, dirs, files in os.walk(root_dir):
         for file in files:
             if file.endswith('.wav'):
                 file_path = os.path.join(root, file)
-                with open(file_path, 'rb') as f:
-                    # Read the RIFF header
-                    riff_header = f.read(12)
-                    if riff_header[:4] != b'RIFF':
-                        raise ValueError('Not a RIFF file')
-                    if riff_header[8:12] != b'WAVE':
-                        raise ValueError('Not a WAVE file')
-
-                    # Read the format chunk
-                    fmt_chunk_header = f.read(8)
-                    if fmt_chunk_header[:4] != b'fmt ':
-                        raise ValueError('Not a format chunk')
-                    fmt_chunk_size = struct.unpack('<I', fmt_chunk_header[4:8])[0]
-                    fmt_chunk_data = f.read(fmt_chunk_size)
-                    wFormatTag, nChannels, nSamplesPerSec, nAvgBytesPerSec, nBlockAlign, wBitsPerSample = struct.unpack('<HHIIHH', fmt_chunk_data[:16])
-
-                    # Print the file name and its bit depth
-                    print(f'{file}: {wBitsPerSample} bits')
+                with sf.SoundFile(file_path) as f:
+                    # Check the subtype of the WAV file
+                    if f.subtype in ["PCM_32", "FLOAT"]:
+                        all_files_32bit = False
+                        failing_files.append(file_path)
+    if all_files_32bit:
+        print('All files are less than 32 bits')
+    else:
+        print('The following files have a bit depth of at least 32 bits:')
+        for file in failing_files:
+            print(file)
 
 # Check the sample rate of all WAV files in the root_dir directory
 def check_sample_rate(root_dir):
