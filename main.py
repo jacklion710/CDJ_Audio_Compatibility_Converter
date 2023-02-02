@@ -41,7 +41,7 @@ import wave
 import subprocess
 
 # Converts audio files into WAV type
-def convert_to_wav(root_dir):
+def convert_to_wav(root_dir, verbose_permission=True):
     for root, dirs, files in os.walk(root_dir):
         for file in files:
             file_path = os.path.join(root, file)
@@ -51,13 +51,18 @@ def convert_to_wav(root_dir):
             except Exception as e:
                 if isinstance(e, sf.SoundFileError):
                     # File is not a valid audio file
-                    print(f"{file_path} is not a valid audio file. Do you want to delete it? (y/n)")
-                    user_input = input()
-                    if user_input.lower() == "y":
+                    if file_extension in [".asd", ".alc", ".DS_Store"]:
+                        # Automatically delete these file types
                         os.remove(file_path)
-                else:
-                    # Other error occurred while trying to read file
-                    print(f"An error occurred while trying to read {file_path}: {e}")
+                    elif verbose_permission:
+                        # Prompt user for permission to delete other file types
+                        print(f"{file_path} is not a valid audio file. Do you want to delete it? (y/n)")
+                        user_input = input()
+                        if user_input.lower() == "y":
+                            os.remove(file_path)
+                    else:
+                        # Automatically delete other file types without prompting
+                        os.remove(file_path)
             else:
                 if file_extension not in [".wav"]:
                     # Convert file to WAV
